@@ -1,0 +1,9 @@
+[package]
+name = "cf-worker-signal"
+version = "2025.2.26"
+edition = "2021"
+description = "WebRtc p2p signal service on Cloudflare Workers"
+license = "GPL-3.0-or-later"
+categories = ["command-line-utilities"]
+keywords = ["webrtc", "p2p", "cf", "worker", "signal"]
+repository = "https://github.com/ascpkg/p2p-proxy/tree/main/cf-worker-signal"

@@ -1,0 +1,9 @@
+[package]
+name = "webrtc-p2p-client"
+version = "2025.2.26"
+edition = "2021"
+description = "WebRtc p2p client"
+license = "GPL-3.0-or-later"
+categories = ["command-line-utilities"]
+keywords = ["webrtc", "p2p", "client"]
+repository = "https://github.com/ascpkg/p2p-proxy/tree/main/webrtc-p2p-client"
