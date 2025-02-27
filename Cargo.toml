@@ -3,5 +3,5 @@ resolver = "2"
 members = [
     "cf-worker-signal",
     "webrtc-p2p-agent",
-    "webrtc-p2p-agent"
+    "webrtc-p2p-client"
 ]

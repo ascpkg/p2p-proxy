@@ -7,3 +7,23 @@ license = "GPL-3.0-or-later"
 categories = ["command-line-utilities"]
 keywords = ["webrtc", "p2p", "cf", "worker", "signal"]
 repository = "https://github.com/ascpkg/p2p-proxy/tree/main/cf-worker-signal"
+
+[package.metadata.release]
+release = false
+
+# https://github.com/rustwasm/wasm-pack/issues/1247
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+axum  = { version = "0.7", default-features = false }
+chrono = { version = "0.4.40" }
+console_error_panic_hook = { version = "0.1.1" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+tower-service = { version = "0.3.2" }
+worker = { version="0.5.0", features=['http', 'axum'] }
+worker-macros = { version="0.5.0", features=['http'] }
