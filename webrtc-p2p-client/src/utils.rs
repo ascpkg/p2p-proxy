@@ -1,6 +1,6 @@
 use anyhow::Result;
-use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 
 /// must_read_stdin blocks until input is received from stdin
 #[allow(clippy::assigning_clones)]

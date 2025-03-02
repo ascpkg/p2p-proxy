@@ -1,0 +1,82 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'webrtc-p2p-agent'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=webrtc-p2p-agent",
+                    "--package=webrtc-p2p-agent"
+                ],
+                "filter": {
+                    "name": "webrtc-p2p-agent",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'webrtc-p2p-agent'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=webrtc-p2p-agent",
+                    "--package=webrtc-p2p-agent"
+                ],
+                "filter": {
+                    "name": "webrtc-p2p-agent",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'webrtc-p2p-client'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=webrtc-p2p-client",
+                    "--package=webrtc-p2p-client"
+                ],
+                "filter": {
+                    "name": "webrtc-p2p-client",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'webrtc-p2p-client'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=webrtc-p2p-client",
+                    "--package=webrtc-p2p-client"
+                ],
+                "filter": {
+                    "name": "webrtc-p2p-client",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

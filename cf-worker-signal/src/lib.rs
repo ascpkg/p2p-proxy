@@ -11,12 +11,12 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
     let router = Router::new();
 
     router
-        .post_async("/pub/agent/:name", agent::handle_pub_agent)
+        .post_async("/publish/agent/:name", agent::handle_publish_agent)
         .get_async("/query/agent/:name", agent::handle_query_agent)
-        .post_async("/pub/client/sdp/:uuid", sdp::handle_pub_client_sdp)
-        .get_async("/sub/client/sdp/:uuid", sdp::handle_sub_client_sdp)
-        .post_async("/pub/agent/sdp/:uuid", sdp::handle_pub_agent_sdp)
-        .get_async("/sub/agent/sdp/:uuid", sdp::handle_sub_agent_sdp)
+        .post_async("/publish/client/sdp/:uuid", sdp::handle_publish_client_sdp)
+        .get_async("/query/client/sdp/:uuid", sdp::handle_query_client_sdp)
+        .post_async("/publish/agent/sdp/:uuid", sdp::handle_publish_agent_sdp)
+        .get_async("/query/agent/sdp/:uuid", sdp::handle_query_agent_sdp)
         .run(req, env)
         .await
 }

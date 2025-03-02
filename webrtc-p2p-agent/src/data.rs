@@ -14,13 +14,12 @@ pub struct Configurations {
     pub name: String,
     pub os: String,
 
+    pub stun_server_urls: Vec<String>,
+
     pub signal_server_url: String,
-    pub pub_agent_url: String,
-    pub query_agent_url: String,
-    pub pub_client_sdp_url: String,
-    pub sub_client_sdp_url: String,
-    pub pub_agent_sdp_url: String,
-    pub sub_agent_sdp_url: String,
+    pub publish_agent_url: String,
+    pub query_client_sdp_url: String,
+    pub publish_agent_sdp_url: String,
 }
 
 impl Configurations {
@@ -42,28 +41,23 @@ impl Configurations {
             config.os = std::env::consts::OS.to_string();
             update = true;
         }
-        if config.pub_agent_url.is_empty() {
-            config.pub_agent_url = String::from("/pub/agent");
+        if config.stun_server_urls.is_empty() {
+            config.stun_server_urls = vec!["stun:stun.l.google.com:19302".to_owned()];
             update = true;
         }
-        if config.query_agent_url.is_empty() {
-            config.query_agent_url = String::from("/query/agent");
+        if config.signal_server_url.is_empty() {
+            tracing::error!("config.signal_server_url.is_empty()");
+        }
+        if config.publish_agent_url.is_empty() {
+            config.publish_agent_url = String::from("/publish/agent");
             update = true;
         }
-        if config.pub_client_sdp_url.is_empty() {
-            config.pub_client_sdp_url = String::from("/pub/client/sdp");
+        if config.query_client_sdp_url.is_empty() {
+            config.query_client_sdp_url = String::from("/query/client/sdp");
             update = true;
         }
-        if config.sub_client_sdp_url.is_empty() {
-            config.sub_client_sdp_url = String::from("/sub/client/sdp");
-            update = true;
-        }
-        if config.pub_agent_sdp_url.is_empty() {
-            config.pub_agent_sdp_url = String::from("/pub/agent/sdp");
-            update = true;
-        }
-        if config.sub_agent_sdp_url.is_empty() {
-            config.sub_agent_sdp_url = String::from("/sub/agent/sdp");
+        if config.publish_agent_sdp_url.is_empty() {
+            config.publish_agent_sdp_url = String::from("/publish/agent/sdp");
             update = true;
         }
         if update {
@@ -73,14 +67,14 @@ impl Configurations {
     }
 }
 
-#[derive(Clone, Default, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
 pub struct Agent {
     pub uuid: String,
     pub name: String,
     pub os: String,
 }
 
-#[derive(Clone, Default, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
 pub struct Sdp {
     pub sdp: String,
     pub is_udp: bool,

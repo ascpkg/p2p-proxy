@@ -17,52 +17,107 @@ pub struct Sdp {
     pub port: u16,
 }
 
-pub struct AppState {}
+pub trait AbstractKvStore {
+    fn get_kv_store_key() -> &'static str;
+    fn get_expiration_ttl() -> u64;
+    fn format_agent_key(name: &str) -> String;
+    fn format_agent_sdp_key(uuid: &str) -> String;
+    fn format_client_sdp_key(uuid: &str) -> String;
+    fn format_service_key(is_udp: bool, port: u16) -> String;
+}
 
-impl AppState {
-    pub fn get_kv_store_key() -> &'static str {
+pub struct AppStateKvStore {
+    kv: KvStore,
+}
+
+impl AbstractKvStore for AppStateKvStore {
+    fn get_kv_store_key() -> &'static str {
         "kv_cf_worker_signal"
     }
 
-    pub fn get_expiration_ttl() -> u64 {
+    fn get_expiration_ttl() -> u64 {
         3600
     }
 
-    pub fn format_agent_key(name: &str) -> String {
+    fn format_agent_key(name: &str) -> String {
         format!("agent:{}", name)
     }
 
-    pub fn format_agent_sdp_key(uuid: &str) -> String {
+    fn format_agent_sdp_key(uuid: &str) -> String {
         format!("agent_sdp:{}", uuid)
     }
 
-    pub fn format_client_sdp_key(uuid: &str) -> String {
+    fn format_client_sdp_key(uuid: &str) -> String {
         format!("client_sdp:{}", uuid)
     }
 
-    pub fn format_service_key(is_udp: bool, port: u16) -> String {
+    fn format_service_key(is_udp: bool, port: u16) -> String {
         format!("{}:{}", if is_udp { "udp" } else { "tcp" }, port)
     }
+}
 
-    pub async fn insert_or_update_agent(kv: &mut KvStore, name: &str, agent: Agent) {
-        let key = Self::format_agent_key(name);
+impl AppStateKvStore {
+    pub fn new(kv: KvStore) -> Self {
+        Self { kv }
+    }
 
-        let mut agents: BTreeMap<String, Agent> = BTreeMap::new();
-        if let Ok(o) = kv.get(&key).text().await {
-            if let Some(s) = o {
-                agents = serde_json::from_str(&s).unwrap();
-                if let Some(ss) = agents.get_mut(&agent.uuid) {
-                    if ss == &agent {
-                        // skip
+    pub async fn insert_or_update_agent(&mut self, name: &str, agent: Agent) {
+        self.insert_or_update_generic(Self::format_agent_key(name), agent.uuid.clone(), agent)
+            .await
+    }
+
+    pub async fn query_agent(&mut self, name: &str) -> Vec<Agent> {
+        self.query_generic(Self::format_agent_key(name)).await
+    }
+
+    pub async fn insert_or_update_client_sdp(&mut self, uuid: &str, sdp: Sdp) {
+        self.insert_or_update_generic(
+            Self::format_client_sdp_key(uuid),
+            Self::format_service_key(sdp.is_udp, sdp.port),
+            sdp,
+        )
+        .await
+    }
+
+    pub async fn query_client_sdp(&mut self, uuid: &str) -> Vec<Sdp> {
+        self.query_generic(Self::format_client_sdp_key(uuid)).await
+    }
+
+    pub async fn insert_or_update_agent_sdp(&mut self, uuid: &str, sdp: Sdp) {
+        self.insert_or_update_generic(
+            Self::format_agent_sdp_key(uuid),
+            Self::format_service_key(sdp.is_udp, sdp.port),
+            sdp,
+        )
+        .await
+    }
+
+    pub async fn query_agent_sdp(&mut self, uuid: &str) -> Vec<Sdp> {
+        self.query_generic(Self::format_agent_sdp_key(uuid)).await
+    }
+
+    // Generic helper method for insert or update operations
+    async fn insert_or_update_generic<T: Serialize + for<'de> Deserialize<'de> + PartialEq>(
+        &mut self,
+        key: String,
+        sub_key: String,
+        value: T,
+    ) {
+        let mut items: BTreeMap<String, T> = BTreeMap::new();
+        if let Ok(option) = self.kv.get(&key).text().await {
+            if let Some(text) = option {
+                items = serde_json::from_str(&text).unwrap();
+                if let Some(existing) = items.get(&sub_key) {
+                    if existing == &value {
                         return;
                     }
                 }
             }
         }
 
-        // insert or update
-        agents.insert(agent.uuid.clone(), agent);
-        kv.put(&key, serde_json::to_string(&agents).unwrap())
+        items.insert(sub_key, value);
+        self.kv
+            .put(&key, serde_json::to_string(&items).unwrap())
             .unwrap()
             .expiration_ttl(Self::get_expiration_ttl())
             .execute()
@@ -70,94 +125,17 @@ impl AppState {
             .unwrap();
     }
 
-    pub async fn query_agent(kv: &mut KvStore, name: &str) -> Vec<Agent> {
-        let key = Self::format_agent_key(name);
-
-        if let Ok(o) = kv.get(&key).text().await {
-            if let Some(s) = o {
-                let agents: BTreeMap<String, Agent> = serde_json::from_str(&s).unwrap();
-                return agents.values().cloned().collect();
+    // Generic helper method for query operations
+    async fn query_generic<T: Clone + Serialize + for<'de> Deserialize<'de>>(
+        &mut self,
+        key: String,
+    ) -> Vec<T> {
+        if let Ok(option) = self.kv.get(&key).text().await {
+            if let Some(text) = option {
+                let items: BTreeMap<String, T> = serde_json::from_str(&text).unwrap();
+                return items.values().cloned().collect();
             }
         }
-
-        return vec![];
-    }
-
-    pub async fn insert_or_update_client_sdp(kv: &mut KvStore, uuid: &str, sdp: Sdp) {
-        let key = Self::format_client_sdp_key(uuid);
-        let sub_key = Self::format_service_key(sdp.is_udp, sdp.port);
-
-        let mut sdps: BTreeMap<String, Sdp> = BTreeMap::new();
-        if let Ok(o) = kv.get(&key).text().await {
-            if let Some(s) = o {
-                sdps = serde_json::from_str(&s).unwrap();
-                if let Some(ss) = sdps.get_mut(&sub_key) {
-                    if ss == &sdp {
-                        // skip
-                        return;
-                    }
-                }
-            }
-        }
-
-        // insert or update
-        sdps.insert(sub_key, sdp);
-        kv.put(&key, serde_json::to_string(&sdps).unwrap())
-            .unwrap()
-            .expiration_ttl(Self::get_expiration_ttl())
-            .execute()
-            .await
-            .unwrap();
-    }
-
-    pub async fn query_client_sdp(kv: &mut KvStore, uuid: &str) -> Vec<Sdp> {
-        let key = Self::format_client_sdp_key(uuid);
-        if let Ok(o) = kv.get(&key).text().await {
-            if let Some(s) = o {
-                let sdps: BTreeMap<String, Sdp> = serde_json::from_str(&s).unwrap();
-                return sdps.values().cloned().collect();
-            }
-        }
-
-        return vec![];
-    }
-
-    pub async fn insert_or_update_agent_sdp(kv: &mut KvStore, uuid: &str, sdp: Sdp) {
-        let key = Self::format_agent_sdp_key(uuid);
-        let sub_key = Self::format_service_key(sdp.is_udp, sdp.port);
-
-        let mut sdps: BTreeMap<String, Sdp> = BTreeMap::new();
-        if let Ok(o) = kv.get(&key).text().await {
-            if let Some(s) = o {
-                sdps = serde_json::from_str(&s).unwrap();
-                if let Some(ss) = sdps.get_mut(&sub_key) {
-                    if ss == &sdp {
-                        // skip
-                        return;
-                    }
-                }
-            }
-        }
-
-        // insert or update
-        sdps.insert(sub_key, sdp);
-        kv.put(&key, serde_json::to_string(&sdps).unwrap())
-            .unwrap()
-            .expiration_ttl(Self::get_expiration_ttl())
-            .execute()
-            .await
-            .unwrap();
-    }
-
-    pub async fn query_agent_sdp(kv: &mut KvStore, uuid: &str) -> Vec<Sdp> {
-        let key = Self::format_agent_sdp_key(uuid);
-        if let Ok(o) = kv.get(&key).text().await {
-            if let Some(s) = o {
-                let sdps: BTreeMap<String, Sdp> = serde_json::from_str(&s).unwrap();
-                return sdps.values().cloned().collect();
-            }
-        }
-
-        return vec![];
+        vec![]
     }
 }

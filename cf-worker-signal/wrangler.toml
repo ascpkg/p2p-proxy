@@ -1,6 +1,6 @@
 name = "cf-worker-signal"
 main = "build/worker/shim.mjs"
-compatibility_date = "2025-02-27"
+compatibility_date = "2025-02-28"
 
 kv_namespaces = [
     { binding = "kv_cf_worker_signal", id = "" },
