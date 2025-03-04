@@ -3,16 +3,16 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 use worker::kv::KvStore;
 
-#[derive(Clone, Default, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
 pub struct Agent {
     pub uuid: String,
     pub name: String,
     pub os: String,
 }
 
-#[derive(Clone, Default, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
 pub struct Sdp {
-    pub sdp: String,
+    pub sdp: Vec<u8>,
     pub is_udp: bool,
     pub port: u16,
 }
