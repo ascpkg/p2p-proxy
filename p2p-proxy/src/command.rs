@@ -23,6 +23,21 @@ pub enum Commands {
         name: String,
     },
 
+    /// test api
+    Test {
+        /// the url path of the api
+        #[arg(long)]
+        path: String,
+
+        /// the name of the agent
+        #[arg(long, default_value = "")]
+        name: String,
+
+        /// the uuid of the agent
+        #[arg(long, default_value = "")]
+        uuid: String,
+    },
+
     /// connect to a specific agent with name and uuid
     Connect {
         /// filter agents by name

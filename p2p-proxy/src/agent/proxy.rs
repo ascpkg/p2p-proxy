@@ -1,26 +1,23 @@
 use anyhow::Result;
 
 use crate::{
+    aes::AesEncryption,
     candidate::IceEndpoint,
     data::{Configurations, Sdp},
+    http_client,
 };
 
 pub async fn proxy(
     config: &Configurations,
-    remote_ice_endpoint: &IceEndpoint,
-    sdps: &Vec<Sdp>,
+    local_ice_endpoint: &IceEndpoint,
+    remote_sdp: &Sdp,
 ) -> Result<()> {
-    let local_ice_endpoint = IceEndpoint::collect(config).await?;
+    let cipher_sdp =
+        AesEncryption::new(&config.password).encrypt(&local_ice_endpoint.to_string())?;
 
-    match local_ice_endpoint.test(remote_ice_endpoint).await {
-        Err(e) => {
-            tracing::error!("local_ice_endpoint.test() error, e: {:?}", e);
-        }
-        Ok(None) => {
-            tracing::error!("local_ice_endpoint.test() error");
-        }
-        Ok(Some((local_candidate, remote_candidate))) => {}
-    }
+    let mut local_sdp = remote_sdp.clone();
+    local_sdp.sdp = cipher_sdp.clone();
+    http_client::publish_agent_sdp(config, &config.uuid, &local_sdp);
 
     return Ok(());
 }

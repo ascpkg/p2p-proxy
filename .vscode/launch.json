@@ -77,6 +77,69 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'p2p-proxy' agent",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=p2p-proxy",
+                    "--package=p2p-proxy"
+                ],
+                "filter": {
+                    "name": "p2p-proxy",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "agent"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'p2p-proxy' connect",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=p2p-proxy",
+                    "--package=p2p-proxy"
+                ],
+                "filter": {
+                    "name": "p2p-proxy",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "connect",
+                "--name", "capric-pc-89pe3oc",
+                "--uuid", "558486ba-3ddd-454a-92c2-b7a7698684c3",
+                "--local-port", "2222",
+                "--remote-port", "2223"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'p2p-proxy'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=p2p-proxy",
+                    "--package=p2p-proxy"
+                ],
+                "filter": {
+                    "name": "p2p-proxy",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

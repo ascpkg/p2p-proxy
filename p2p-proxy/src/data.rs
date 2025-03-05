@@ -38,10 +38,13 @@ pub struct Configurations {
     pub signal_server_url: String,
     pub publish_agent_url: String,
     pub query_agent_url: String,
+    pub delete_agent_url: String,
     pub publish_client_sdp_url: String,
     pub query_client_sdp_url: String,
+    pub delete_client_sdp_url: String,
     pub publish_agent_sdp_url: String,
     pub query_agent_sdp_url: String,
+    pub delete_agent_sdp_url: String,
 }
 
 impl Configurations {
@@ -64,6 +67,10 @@ impl Configurations {
             hasher.update(uuid::Uuid::new_v4().to_string().as_bytes());
             config.password = format!("{:x}", hasher.finalize());
         }
+        if config.password.len() > 32 {
+            update = true;
+            config.password = config.password[..32].to_string();
+        }
         if config.uuid.is_empty() {
             update = true;
             config.uuid = uuid::Uuid::new_v4().to_string();
@@ -81,7 +88,7 @@ impl Configurations {
         }
         if config.stun_server_urls.is_empty() {
             update = true;
-            config.stun_server_urls = vec![(true, String::from("stun:stun.l.google.com"), 19302)];
+            config.stun_server_urls = vec![(true, String::from("stun.l.google.com"), 19302)];
         }
         if config.signal_server_url.is_empty() {
             tracing::error!("config.signal_server_url.is_empty()");
@@ -94,6 +101,10 @@ impl Configurations {
             update = true;
             config.query_agent_url = String::from("/query/agent");
         }
+        if config.delete_agent_url.is_empty() {
+            update = true;
+            config.delete_agent_url = String::from("/delete/agent");
+        }
         if config.publish_client_sdp_url.is_empty() {
             update = true;
             config.publish_client_sdp_url = String::from("/publish/client/sdp");
@@ -102,6 +113,10 @@ impl Configurations {
             update = true;
             config.query_client_sdp_url = String::from("/query/client/sdp");
         }
+        if config.delete_client_sdp_url.is_empty() {
+            update = true;
+            config.delete_client_sdp_url = String::from("/delete/client/sdp");
+        }
         if config.publish_agent_sdp_url.is_empty() {
             update = true;
             config.publish_agent_sdp_url = String::from("/publish/agent/sdp");
@@ -109,6 +124,10 @@ impl Configurations {
         if config.query_agent_sdp_url.is_empty() {
             update = true;
             config.query_agent_sdp_url = String::from("/query/agent/sdp");
+        }
+        if config.delete_agent_sdp_url.is_empty() {
+            update = true;
+            config.delete_agent_sdp_url = String::from("/delete/agent/sdp");
         }
 
         if update {

@@ -70,6 +70,11 @@ impl AppStateKvStore {
         self.query_generic(Self::format_agent_key(name)).await
     }
 
+    pub async fn delete_agent(&mut self, name: &str, agent: Agent) {
+        self.delete_generic::<Agent>(Self::format_agent_key(name), agent.uuid)
+            .await;
+    }
+
     pub async fn insert_or_update_client_sdp(&mut self, uuid: &str, sdp: Sdp) {
         self.insert_or_update_generic(
             Self::format_client_sdp_key(uuid),
@@ -83,6 +88,14 @@ impl AppStateKvStore {
         self.query_generic(Self::format_client_sdp_key(uuid)).await
     }
 
+    pub async fn delete_client_sdp(&mut self, uuid: &str, sdp: Sdp) {
+        self.delete_generic::<Agent>(
+            Self::format_client_sdp_key(uuid),
+            Self::format_service_key(sdp.is_udp, sdp.port),
+        )
+        .await;
+    }
+
     pub async fn insert_or_update_agent_sdp(&mut self, uuid: &str, sdp: Sdp) {
         self.insert_or_update_generic(
             Self::format_agent_sdp_key(uuid),
@@ -94,6 +107,14 @@ impl AppStateKvStore {
 
     pub async fn query_agent_sdp(&mut self, uuid: &str) -> Vec<Sdp> {
         self.query_generic(Self::format_agent_sdp_key(uuid)).await
+    }
+
+    pub async fn delete_agent_sdp(&mut self, uuid: &str, sdp: Sdp) {
+        self.delete_generic::<Agent>(
+            Self::format_agent_sdp_key(uuid),
+            Self::format_service_key(sdp.is_udp, sdp.port),
+        )
+        .await;
     }
 
     // Generic helper method for insert or update operations
@@ -137,5 +158,26 @@ impl AppStateKvStore {
             }
         }
         vec![]
+    }
+
+    // Generic helper method for delete operations
+    async fn delete_generic<T: Clone + Serialize + for<'de> Deserialize<'de>>(
+        &mut self,
+        key: String,
+        sub_key: String,
+    ) {
+        if let Ok(option) = self.kv.get(&key).text().await {
+            if let Some(text) = option {
+                let mut items: BTreeMap<String, T> = serde_json::from_str(&text).unwrap();
+                items.remove(&sub_key);
+                self.kv
+                    .put(&key, serde_json::to_string(&items).unwrap())
+                    .unwrap()
+                    .expiration_ttl(Self::get_expiration_ttl())
+                    .execute()
+                    .await
+                    .unwrap();
+            }
+        }
     }
 }

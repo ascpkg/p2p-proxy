@@ -28,3 +28,15 @@ pub async fn handle_query_agent(_req: Request, ctx: RouteContext<()>) -> Result<
 
     Response::from_json(&agents)
 }
+
+pub async fn handle_delete_agent(mut req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let mut name = String::new();
+    if let Some(n) = ctx.param("name") {
+        name = n.to_string();
+    }
+
+    let mut kv = AppStateKvStore::new(ctx.kv(AppStateKvStore::get_kv_store_key())?);
+    kv.delete_agent(&name, req.json::<Agent>().await?).await;
+
+    Response::from_json(&HashMap::<String, String>::new())
+}

@@ -48,6 +48,24 @@ pub fn query_agent(config: &Configurations, name: &str) -> Vec<Agent> {
     return vec![];
 }
 
+pub fn delete_agent(config: &Configurations, agent: &Agent) {
+    let url = format!(
+        "{}{}/{}",
+        config.signal_server_url, config.delete_agent_url, agent.name
+    );
+
+    let a = ureq::AgentBuilder::new()
+        .try_proxy_from_env(true)
+        .timeout_read(std::time::Duration::from_secs(HTTP_READ_TIMEOUT_SECS))
+        .timeout_write(std::time::Duration::from_secs(HTTP_WRITE_TIEOUT_SECS))
+        .build();
+
+    let _response = a
+        .delete(&url)
+        .set(HTTP_HEADER_KEY_CONTENT_TYPE, HTTP_HEADER_VALUE_APP_JSON)
+        .send_string(&serde_json::to_string(agent).unwrap());
+}
+
 pub fn publish_client_sdp(config: &Configurations, uuid: &str, sdp: &Sdp) {
     let url = format!(
         "{}{}/{}",
@@ -86,6 +104,24 @@ pub fn query_client_sdp(config: &Configurations, uuid: &str) -> Vec<Sdp> {
     return vec![];
 }
 
+pub fn delete_client_sdp(config: &Configurations, uuid: &str, sdp: &Sdp) {
+    let url = format!(
+        "{}{}/{}",
+        config.signal_server_url, config.delete_client_sdp_url, uuid
+    );
+
+    let a = ureq::AgentBuilder::new()
+        .try_proxy_from_env(true)
+        .timeout_read(std::time::Duration::from_secs(HTTP_READ_TIMEOUT_SECS))
+        .timeout_write(std::time::Duration::from_secs(HTTP_WRITE_TIEOUT_SECS))
+        .build();
+
+    let _response = a
+        .post(&url)
+        .set(HTTP_HEADER_KEY_CONTENT_TYPE, HTTP_HEADER_VALUE_APP_JSON)
+        .send_string(&serde_json::to_string(sdp).unwrap());
+}
+
 pub fn publish_agent_sdp(config: &Configurations, uuid: &str, sdp: &Sdp) {
     let url = format!(
         "{}{}/{}",
@@ -122,4 +158,22 @@ pub fn query_agent_sdp(config: &Configurations, uuid: &str) -> Vec<Sdp> {
     }
 
     return vec![];
+}
+
+pub fn delete_agent_sdp(config: &Configurations, uuid: &str, sdp: &Sdp) {
+    let url = format!(
+        "{}{}/{}",
+        config.signal_server_url, config.delete_agent_sdp_url, uuid
+    );
+
+    let a = ureq::AgentBuilder::new()
+        .try_proxy_from_env(true)
+        .timeout_read(std::time::Duration::from_secs(HTTP_READ_TIMEOUT_SECS))
+        .timeout_write(std::time::Duration::from_secs(HTTP_WRITE_TIEOUT_SECS))
+        .build();
+
+    let _response = a
+        .post(&url)
+        .set(HTTP_HEADER_KEY_CONTENT_TYPE, HTTP_HEADER_VALUE_APP_JSON)
+        .send_string(&serde_json::to_string(sdp).unwrap());
 }
